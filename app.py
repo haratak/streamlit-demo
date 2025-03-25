@@ -1,5 +1,4 @@
 import streamlit as st
-from sales_analysis import show_sales_analysis_page
 
 # ページ設定
 st.set_page_config(
