@@ -11,7 +11,10 @@ st.set_page_config(
 
 pages = [
     st.Page("home.py", title="ホーム"),
-    st.Page("daily_sales_analysys.py", title="日次実績"),
+    st.Page("hourly_sales_analysis.py", title="時間帯別売上実績"),
+    st.Page("daily_sales_analysis.py", title="日次売上実績"),
+    st.Page("daily_customer_analysis.py", title="日次客数実績"),
+    st.Page("daily_sales_calendar.py", title="日次売上カレンダー"),
 ]
 
 pg = st.navigation(pages)

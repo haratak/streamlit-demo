@@ -1,5 +1,5 @@
 import streamlit as st
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
 
@@ -11,6 +11,83 @@ STORES = [{"id": "ALL", "name": "全店舗"}] + [
     {"id": "S004", "name": "店舗D"}
 ]
 
+# 表示するカラムの定義
+columns = {
+    # 基本情報
+    "id": "ID",
+    "name": "名称",
+    # 売上関連
+    "currentSales": "当日売上",
+    "totalSales": "累計売上",
+    "budgetRatio": "予算比",
+    "totalBudgetRatio": "累計予算比",
+    # 前年比較
+    "lastYearSales": "前年売上",
+    "totalLastYearSales": "累計前年売上",
+    "lastYearSalesRatio": "前年比",
+    "totalLastYearSalesRatio": "累計前年比",
+    # 前年同曜日比較
+    "lastYearSameDaySales": "前年同曜日売上",
+    "totalLastYearSameDaySales": "累計前年同曜日売上",
+    "lastYearSameDaySalesRatio": "前年同曜日比",
+    "totalLastYearSameDaySalesRatio": "累計前年同曜日比",
+    # 客数関連
+    "currentCustomers": "当日客数",
+    "totalCustomers": "累計客数",
+    "averageSalePerCustomer": "客単価",
+    "averageTotalSalePerCustomer": "累計客単価",
+    # 商品関連
+    "currentStockKeepingUnit": "当日商品点数",
+    "totalStockKeepingUnit": "累計商品点数",
+    "currentStockKeepingUnitPrice": "当日一品単価",
+    "totalStockKeepingUnitPrice": "累計一品単価"
+}
+
+# フォーマット設定
+format_dict = {
+    "当日売上": "¥{:,.0f}",
+    "累計売上": "¥{:,.0f}",
+    "予算比": "{:.1f}%",
+    "累計予算比": "{:.1f}%",
+    "前年売上": "¥{:,.0f}",
+    "累計前年売上": "¥{:,.0f}",
+    "前年比": "{:.1f}%",
+    "累計前年比": "{:.1f}%",
+    "前年同曜日売上": "¥{:,.0f}",
+    "累計前年同曜日売上": "¥{:,.0f}",
+    "前年同曜日比": "{:.1f}%",
+    "累計前年同曜日比": "{:.1f}%",
+    "当日客数": "{:,.0f}",
+    "累計客数": "{:,.0f}",
+    "客単価": "¥{:,.0f}",
+    "累計客単価": "¥{:,.0f}",
+    "当日商品点数": "{:,.0f}",
+    "累計商品点数": "{:,.0f}",
+    "当日一品単価": "¥{:,.0f}",
+    "累計一品単価": "¥{:,.0f}"
+}
+
+# ヘッダーの表示
+st.header("店舗・部門別売上分析")
+
+# 日付選択
+selected_date = st.date_input(
+    "日付を選択",
+    value=datetime.now(),
+    format="YYYY/MM/DD"
+)
+
+# 区切り線を追加
+st.divider()
+
+# 店舗選択
+selected_store = st.selectbox(
+    "店舗を選択",
+    options=[store["id"] for store in STORES],
+    format_func=lambda x: next((store["name"] for store in STORES if store["id"] == x), x),
+)
+
+# generate_sample_data関数を修正
 def generate_sample_data(data_type="store", selected_store_id=None, target_date=None):
     # 店舗/部門の定義
     stores = [
@@ -44,7 +121,6 @@ def generate_sample_data(data_type="store", selected_store_id=None, target_date=
         if selected_store_id and data_type == "store" and item["id"] != selected_store_id:
             continue
             
-        # 選択された日付のデータのみ生成
         # 基準値の設定
         base_sales = np.random.randint(800000, 1200000)
         base_customers = np.random.randint(500, 1000)
@@ -93,87 +169,6 @@ def generate_sample_data(data_type="store", selected_store_id=None, target_date=
     
     return pd.DataFrame(data)
 
-# ヘッダーの表示
-st.header("日次実績")
-
-# 期間選択タブ
-tab_daily, tab_weekly, tab_monthly = st.tabs(["日次", "週次", "月次"])
-
-with tab_daily:
-    selected_date = st.date_input(
-            "日付を選択",
-            value=datetime.now(),
-            format="YYYY/MM/DD"
-    )
-
-# ... 既存の期間選択タブの内容 ...
-
-# 区切り線を追加
-st.divider()
-
-# 店舗選択
-selected_store = st.selectbox(
-    "店舗を選択",
-    options=[store["id"] for store in STORES],
-    format_func=lambda x: next((store["name"] for store in STORES if store["id"] == x), x),
-)
-
-# 表示するカラムの定義
-columns = {
-    # 基本情報
-    "id": "ID",
-    "name": "名称",
-    # 売上関連
-    "currentSales": "当日売上",
-    "totalSales": "累計売上",
-    "budgetRatio": "予算比",
-    "totalBudgetRatio": "累計予算比",
-    # 前年比較
-    "lastYearSales": "前年売上",
-    "totalLastYearSales": "累計前年売上",
-    "lastYearSalesRatio": "前年比",
-    "totalLastYearSalesRatio": "累計前年比",
-    # 前年同曜日比較
-    "lastYearSameDaySales": "前年同曜日売上",
-    "totalLastYearSameDaySales": "累計前年同曜日売上",
-    "lastYearSameDaySalesRatio": "前年同曜日比",
-    "totalLastYearSameDaySalesRatio": "累計前年同曜日比",
-    # 客数関連
-    "currentCustomers": "当日客数",
-    "totalCustomers": "累計客数",
-    "averageSalePerCustomer": "客単価",
-    "averageTotalSalePerCustomer": "累計客単価",
-    # 商品関連
-    "currentStockKeepingUnit": "当日商品点数",
-    "totalStockKeepingUnit": "累計商品点数",
-    "currentStockKeepingUnitPrice": "当日一品単価",
-    "totalStockKeepingUnitPrice": "累計一品単価"
-}
-
-# フォーマット設定の更新
-format_dict = {
-    "当日売上": "¥{:,.0f}",
-    "累計売上": "¥{:,.0f}",
-    "予算比": "{:.1f}%",
-    "累計予算比": "{:.1f}%",
-    "前年売上": "¥{:,.0f}",
-    "累計前年売上": "¥{:,.0f}",
-    "前年比": "{:.1f}%",
-    "累計前年比": "{:.1f}%",
-    "前年同曜日売上": "¥{:,.0f}",
-    "累計前年同曜日売上": "¥{:,.0f}",
-    "前年同曜日比": "{:.1f}%",
-    "累計前年同曜日比": "{:.1f}%",
-    "当日客数": "{:,.0f}",
-    "累計客数": "{:,.0f}",
-    "客単価": "¥{:,.0f}",
-    "累計客単価": "¥{:,.0f}",
-    "当日商品点数": "{:,.0f}",
-    "累計商品点数": "{:,.0f}",
-    "当日一品単価": "¥{:,.0f}",
-    "累計一品単価": "¥{:,.0f}"
-}
-
 # データ表示
 if selected_store == "ALL":
     st.subheader("全店舗実績")
@@ -185,8 +180,8 @@ if selected_store == "ALL":
     # カラム名を日本語に変換
     df_store = df_store.rename(columns=columns)
     
-    # 行数に応じて高さを計算（1行あたり35px + ヘッダー用の50px）
-    height = min(len(df_store) * 35 + 50, 400)  # 最大400pxまで
+    # 行数に応じて高さを計算
+    height = min(len(df_store) * 35 + 50, 400)
     
     st.dataframe(
         df_store.style.format(format_dict),
@@ -206,19 +201,11 @@ else:
     # カラム名を日本語に変換
     df_department = df_department.rename(columns=columns)
     
-    # 行数に応じて高さを計算（1行あたり35px + ヘッダー用の50px）
-    height = min(len(df_department) * 35 + 50, 400)  # 最大400pxまで
+    # 行数に応じて高さを計算
+    height = min(len(df_department) * 35 + 50, 400)
     
     st.dataframe(
         df_department.style.format(format_dict),
         use_container_width=True,
         height=height
-    )
-
-# 補足情報の表示
-st.markdown("""
-* 売上金額は税込み表示です
-* 予算比、前年比は100%を基準として評価されます
-* 客単価は売上÷客数で算出されています
-* 一品単価は売上÷商品点数で算出されています
-""")
+    ) 

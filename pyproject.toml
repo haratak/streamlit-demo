@@ -11,6 +11,7 @@ dependencies = [
     "plotly>=6.0.1",
     "selenium>=4.30.0",
     "streamlit>=1.43.2",
+    "streamlit-calendar>=1.2.1",
     "uvicorn>=0.34.0",
     "webdriver-manager>=4.0.2",
 ]

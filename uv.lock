@@ -933,6 +933,18 @@ wheels = [
 ]
 
 [[package]]
+name = "streamlit-calendar"
+version = "1.2.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "streamlit" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/2e/1d/5ded5661352042a9b23d7ba5d6e92683a828da2950ffbcc5f4ef6e6b0968/streamlit_calendar-1.2.1.tar.gz", hash = "sha256:3e23cf701ce49f95ac9846ce624d26dec0a5759f6e9992932579c4a433ea200d", size = 1262038 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/99/14/2aa71e5b3ec870eda05c06a8aa6056eee2d04722cd2fee2751220a7a2504/streamlit_calendar-1.2.1-py3-none-any.whl", hash = "sha256:6a76799412872766ffb51c1a8e3ed58326593331caf373d8536d75560fdf1cd6", size = 1274475 },
+]
+
+[[package]]
 name = "streamlit-demo"
 version = "0.1.0"
 source = { virtual = "." }
@@ -943,6 +955,7 @@ dependencies = [
     { name = "plotly" },
     { name = "selenium" },
     { name = "streamlit" },
+    { name = "streamlit-calendar" },
     { name = "uvicorn" },
     { name = "webdriver-manager" },
 ]
@@ -955,6 +968,7 @@ requires-dist = [
     { name = "plotly", specifier = ">=6.0.1" },
     { name = "selenium", specifier = ">=4.30.0" },
     { name = "streamlit", specifier = ">=1.43.2" },
+    { name = "streamlit-calendar", specifier = ">=1.2.1" },
     { name = "uvicorn", specifier = ">=0.34.0" },
     { name = "webdriver-manager", specifier = ">=4.0.2" },
 ]
