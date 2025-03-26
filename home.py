@@ -9,6 +9,9 @@ departments = df["部門名"].unique()
 # ヘッダーの表示
 st.header("ホーム")
 
+# データ読み込み後に日付をdatetime型に変換
+df["日付"] = pd.to_datetime(df["日付"])
+
 # 期間選択
 
 selected_dates = st.date_input(
@@ -44,10 +47,12 @@ with col2:
 # 区切り線を追加
 st.divider()
 
-# 日付範囲でフィルタリング
-start_date = selected_dates[0].strftime("%Y-%m-%d")
-end_date = selected_dates[1].strftime("%Y-%m-%d")
-filtered_df = df[(df["日付"] >= start_date) & (df["日付"] <= end_date)]
+# 日付範囲でフィルタリング（修正）
+start_date, end_date = selected_dates
+filtered_df = df[
+    (df["日付"] >= pd.Timestamp(start_date)) & 
+    (df["日付"] <= pd.Timestamp(end_date))
+]
 
 # 店舗・部門でフィルタリング
 if selected_stores:
@@ -55,12 +60,45 @@ if selected_stores:
 if selected_departments:
     filtered_df = filtered_df[filtered_df["部門名"].isin(selected_departments)]
 
-# 日付ごとの売上集計
-daily_sales_by_date = filtered_df.groupby("日付")["売上金額"].sum().reset_index()
+# 前月の日付範囲を取得
+prev_month_start = pd.Timestamp(start_date) - pd.DateOffset(months=1)
+prev_month_end = pd.Timestamp(end_date) - pd.DateOffset(months=1)
 
-daily_sales_by_store = filtered_df.groupby(["店舗名"])["売上金額"].sum().reset_index()
+# 前月データを取得
+filtered_prev_month_df = df[
+    (df["日付"] >= prev_month_start) & 
+    (df["日付"] <= prev_month_end)
+]
 
-daily_sales_by_department = filtered_df.groupby(["部門名"])["売上金額"].sum().reset_index()
+# 前月も同じフィルター条件を適用
+if selected_stores:
+    filtered_prev_month_df = filtered_prev_month_df[filtered_prev_month_df["店舗名"].isin(selected_stores)]
+if selected_departments:
+    filtered_prev_month_df = filtered_prev_month_df[filtered_prev_month_df["部門名"].isin(selected_departments)]
+
+# 前月の日付を現在月に合わせる
+filtered_prev_month_df = filtered_prev_month_df.copy()
+filtered_prev_month_df["日付"] = filtered_prev_month_df["日付"] + pd.DateOffset(months=1)
+
+# 当月と前月の日次売上を集計
+daily_sales_current = filtered_df.groupby("日付")["売上金額"].sum().reset_index()
+daily_sales_prev_month = filtered_prev_month_df.groupby("日付")["売上金額"].sum().reset_index()
+daily_sales_prev_month.rename(columns={"売上金額": "前月売上金額"}, inplace=True)
+
+# 当月と前月のデータを結合
+daily_sales_combined = pd.merge(
+    daily_sales_current,
+    daily_sales_prev_month,
+    on="日付",
+    how="left"
+).fillna(0)
+
+# 前月比を計算
+daily_sales_combined["前月比"] = (
+    (daily_sales_combined["売上金額"] - daily_sales_combined["前月売上金額"])
+    / daily_sales_combined["前月売上金額"].replace({0: pd.NA})
+    * 100
+).fillna(0)
 
 # 折れ線グラフの描画
 
@@ -90,11 +128,9 @@ with col3:
     )
 
 
-st.subheader("期間推移")
-st.bar_chart(
-    daily_sales_by_date,
-    x="日付",
-    y="売上金額"
+st.subheader("期間推移（前月対比）")
+st.line_chart(
+    daily_sales_combined.set_index("日付")[["売上金額", "前月売上金額"]]
 )
 
 st.subheader("店舗比較")
@@ -110,11 +146,16 @@ st.bar_chart(
     store_dept_sales,
     x="店舗名"
 )
+dept_store_sales = filtered_df.pivot_table(
+    values="売上金額",
+    index="部門名",
+    columns="店舗名",
+    aggfunc="sum"
+).reset_index()
 st.subheader("部門比較")
 st.bar_chart(
-    daily_sales_by_department,
+    dept_store_sales,
     x="部門名",
-    y="売上金額"
 )
 
 
